@@ -37,6 +37,7 @@ def searchNode(state: State) -> Command[Literal["supervisor"]]:
 
 webScrapperAgent = create_react_agent(llm, tools=[scrapeWebpages])
 
+
 def webScrapperNode(state: State) -> Command[Literal["supervisor"]]:
 
     result = webScrapperAgent.invoke(state)

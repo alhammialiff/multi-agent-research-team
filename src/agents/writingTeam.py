@@ -63,7 +63,7 @@ def noteTakingNode(state: State) -> Command[Literal["supervisor"]]:
     return Command(
         update = {
             "messages": [
-                HumanMessage(content = result["messages"][-1].content, name = "docWriter")
+                HumanMessage(content = result["messages"][-1].content, name = "noteTaker")
             ]
         },
         goto = "supervisor"
