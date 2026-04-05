@@ -6,6 +6,7 @@ import os
 from typing import Annotated, Dict, List, Optional
 
 from langchain_community.document_loaders import WebBaseLoader
+from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool 
 from langchain.chat_models import BaseChatModel
 
@@ -22,31 +23,33 @@ class State(MessagesState):
     next: str
 
 
-def makeSupervisorNode(llm: BaseChatModel, members: List[str]) -> str:
+def makeDivisionLead(llm: BaseChatModel, members: List[str]) -> str:
 
-    """ A function to instantiate a Supervisor node """
-
+    """ A function to instantiate a Division Lead node """
     options = ["FINISH"] + members
     systemPrompts = (
-        "You are a supervisor tasked with managing a conversation between the" 
-        f" following workers: {members}. Given the following user request," 
-        " response with the worker to act next. Each worker will perform a" 
-        " task and respond with their results and status. When finished," 
-        " respond with FINISH."
+        f"You are the division lead for two teams: {members}"
+        " Given the following user request, decide which team you should work on the request."
+        " You should review outputs from each team, and decide if it is good enough to progress to"
+        " the next steps. Finally, you will decide if the final result is good enough as the final response."
+        " When finished, respond with FINISH"
     )
 
     class Router(TypedDict):
-        
+
         next: Literal[*options]
 
-    def supervisor(state: State) -> Command[Literal[*members, "__end__"]]:
+    def divisionLead(state: State) -> Command[Literal[*members, "__end__"]]:
 
+        # Define message with its Role, Instructions, and State
         messages = [
             {"role": "system", "content":systemPrompts}
         ] + state["messages"]
 
+        # Use Router type to structure response
         response = llm.with_structured_output(Router).invoke(messages)
-
+        
+        # Define where should it pipe its output to (Next agent, or END?)
         goto = response["next"]
 
         if goto == "FINISH":
@@ -54,10 +57,12 @@ def makeSupervisorNode(llm: BaseChatModel, members: List[str]) -> str:
 
         # Handoff control to another agent
         return Command(
-            goto=goto, 
-            update={"next",goto}
+            goto=goto,
+            update={
+                "messages": [
+                    HumanMessage(content=f"Division lead selected {goto}", name="divisionLead")             
+                ]
+            }
         )
     
-    return supervisor 
-
-
+    return divisionLead

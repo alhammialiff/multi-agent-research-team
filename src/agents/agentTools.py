@@ -23,10 +23,16 @@ def scrapeWebpages(urls: List[str]) -> str:
     loader = WebBaseLoader(urls)
     docs = loader.load()
 
+    # return "\n\n".join(
+    #     [
+    #         f'<Document name="{docs.metadata.get("title","")}">\n{docs.page_content}\n</Document>'
+    #     ]
+    # )
+
+    # Run a list comprehension that parses each doc in the doc lists retrieved
     return "\n\n".join(
-        [
-            f'<Document name="{docs.metadata.get("title","")}">\n{docs.page_content}\n</Document>'
-        ]
+        f'<Document name="{doc.metadata.get("title","")}">\n{doc.page_content}\n</Document>'
+        for doc in docs
     )
 
 
@@ -112,6 +118,7 @@ def editDocument(
         file.writelines(lines)
 
     return f"Document edited and saved to {fileName}"
+
 
 @tool
 def pythonReplTool(

@@ -24,6 +24,7 @@ tavilyTool = TavilySearch(max_result=3)
 
 searchAgent = create_react_agent(llm, tools=[tavilyTool])
 
+
 def searchNode(state: State) -> Command[Literal["supervisor"]]:
 
     result = searchAgent.invoke(state)

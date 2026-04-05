@@ -19,6 +19,7 @@ from langgraph.prebuilt import create_react_agent
 from agents.researchTeam import searchNode, webScrapperNode, researchSupervisorNode
 from agents.writingTeam import chartGeneratingNode, docWritingNode, docWritingSupervisorNode, noteTakingNode
 from agents.supervisor import State, makeSupervisorNode
+from agents.divisionLead import State, makeDivisionLead
 
 def main():
 
@@ -40,9 +41,35 @@ def main():
     writingBuilder.add_edge(START, "supervisor")
     writingGraph = writingBuilder.compile()
 
-    for s in writingGraph.stream(
+    # Add a Division Lead to pass down requirements to two groups
+    divisionBuilder = StateGraph(State)
+
+    # Define Division Lead and its graph relationship to the teams
+    llm = ChatOpenAI(model = "gpt-4o")
+    divisionLead = makeDivisionLead(llm, ["researchTeam", "writingTeam"])
+    
+    # Create nodes for the hierarchy
+    divisionBuilder.add_node("divisionLead", divisionLead)
+    divisionBuilder.add_node("researchTeam", researchGraph)
+    divisionBuilder.add_node("writingTeam", writingGraph)
+
+    
+    
+    # Connect Division Lead and the two teams to form the hierarchy
+    divisionBuilder.add_edge(START, "divisionLead")
+    divisionBuilder.add_edge("divisionLead", "researchTeam")
+    divisionBuilder.add_edge("divisionLead", "writingTeam")
+
+    # Compile graph (the hierarchy)
+    divisionGraph = divisionBuilder.compile()
+
+
+    for s in divisionGraph.stream(
         {
-            "messages": [HumanMessage(content="Write an outline for a poem about dogs and after that write the poem itself and store it")]
+            "messages": [
+                HumanMessage(
+                    content="Write a summary about how AI can further the advance of drug discovery and save it as a text document.")
+            ]
         },
         {
             "recursion_limit": 30
