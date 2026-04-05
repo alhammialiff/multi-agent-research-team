@@ -44,7 +44,9 @@ def createOutline(
     
     """ Create and save an outline"""
 
-    fileToUse = os.path.join(os.getcwd(), "temp", fileName)
+    tempDir = os.path.join(os.getcwd(), "temp")
+    os.makedirs(tempDir, exist_ok=True)
+    fileToUse = os.path.join(tempDir, fileName)
 
     with open(fileToUse, "w") as file:
         for i, point in enumerate(points):
@@ -64,6 +66,9 @@ def readDocument(
 
     fileToUse = os.path.join(os.getcwd(), "temp", fileName)
 
+    if not os.path.exists(fileToUse):
+        return f"Document '{fileName}' does not exist yet. Please create it first."
+
     with open(fileToUse, "r") as file:
         lines = file.readlines()
 
@@ -81,7 +86,9 @@ def writeDocument(
     
     """Create and save a text document"""
 
-    fileToUse = os.path.join(os.getcwd(), "temp", fileName)
+    tempDir = os.path.join(os.getcwd(), "temp")
+    os.makedirs(tempDir, exist_ok=True)
+    fileToUse = os.path.join(tempDir, fileName)
     
     with open(fileToUse, "w") as file:
         file.write(content)
@@ -97,9 +104,11 @@ def editDocument(
     
     """Edit a document by inserting text at specified line numbers"""
     
-    fileToUse = os.path.join(os.getcwd(), "temp", fileName)
+    tempDir = os.path.join(os.getcwd(), "temp")
+    os.makedirs(tempDir, exist_ok=True)
+    fileToUse = os.path.join(tempDir, fileName)
 
-    with open(fileToUse, "w") as file:
+    with open(fileToUse, "r") as file:
         lines = file.readlines()
 
     sortedInserts = sorted(insert.items())
@@ -114,7 +123,7 @@ def editDocument(
             return f"Error: line number {lineNumber} is out of range"
         
     # Save file
-    with open(fileName, "w") as file:
+    with open(fileToUse, "w") as file:
         file.writelines(lines)
 
     return f"Document edited and saved to {fileName}"

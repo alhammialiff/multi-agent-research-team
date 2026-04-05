@@ -30,8 +30,8 @@ def makeSupervisorNode(llm: BaseChatModel, members: List[str]) -> str:
     systemPrompts = (
         "You are a supervisor tasked with managing a conversation between the" 
         f" following workers: {members}. Given the following user request," 
-        " response with the worker to act next. Each worker will perform a" 
-        " task and respond with their results and status. When finished," 
+        " always delegate the Note Taker of Writer Team to outline requirements. Expect an output from Note Taker when they are "
+        " done. Following receipt of Note Taker output, pass it on to the Research Team next for research. When finished," 
         " respond with FINISH."
     )
 
