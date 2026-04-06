@@ -19,6 +19,7 @@ from langgraph.prebuilt import create_react_agent
 from agents.agentTools import scrapeWebpages
 from agents.supervisor import State, makeSupervisorNode
 
+load_dotenv()
 llm = ChatOpenAI(model = "gpt-4o")
 tavilyTool = TavilySearch(max_result=3)
 
@@ -31,7 +32,7 @@ def searchNode(state: State) -> Command[Literal["supervisor"]]:
 
     return Command(
         update = {
-            "messages": [HumanMessage(content=result["messages"][-1].content, name="search")]
+            "messages": state["messages"] + [HumanMessage(content=result["messages"][-1].content, name="search")]
         },
         goto = "supervisor"
     )
@@ -45,7 +46,7 @@ def webScrapperNode(state: State) -> Command[Literal["supervisor"]]:
 
     return Command(
         update = {
-            "messages": [HumanMessage(content=result["messages"][-1].content, name="webScrapper")]
+            "messages": state["messages"] + [HumanMessage(content=result["messages"][-1].content, name="webScrapper")]
         },
         goto = "supervisor"
     )

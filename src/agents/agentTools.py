@@ -1,5 +1,6 @@
 from typing import Literal, TypedDict
 
+import certifi
 
 from dotenv import load_dotenv
 import os
@@ -20,6 +21,9 @@ def scrapeWebpages(urls: List[str]) -> str:
 
     """ User requests and bs4 to scrape the proivided the web page for detailed information"""
     
+    os.environ["SSL_CERT_FILE"] = certifi.where()
+    os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
+
     loader = WebBaseLoader(urls)
     docs = loader.load()
 
@@ -81,7 +85,7 @@ def readDocument(
 @tool
 def writeDocument(
     content: Annotated[str, "Test content to be returned to the documnet"],
-    fileName: Annotated[str, "File path to save the document"]
+    fileName: Annotated[str, "File path to save the document."]
 ):
     
     """Create and save a text document"""

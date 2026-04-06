@@ -22,6 +22,7 @@ from agents.supervisor import State, makeSupervisorNode
 from agents.agentTools import createOutline, editDocument, readDocument, writeDocument, pythonReplTool, scrapeWebpages
 
 
+load_dotenv()
 llm = ChatOpenAI(model = "gpt-4o")
 
 docWriterAgent = create_react_agent(
@@ -39,7 +40,7 @@ def docWritingNode(state: State) -> Command[Literal["supervisor"]]:
 
     return Command(
         update = {
-            "messages": [
+            "messages": state["messages"] + [
                 HumanMessage(content= result["messages"][-1].content, name = "docWriter")
             ]
         },
@@ -62,7 +63,7 @@ def noteTakingNode(state: State) -> Command[Literal["supervisor"]]:
 
     return Command(
         update = {
-            "messages": [
+            "messages": state["messages"] + [
                 HumanMessage(content = result["messages"][-1].content, name = "noteTaker")
             ]
         },
@@ -80,7 +81,7 @@ def chartGeneratingNode(state: State) -> Command[Literal["supervisor"]]:
 
     return Command(
         update = {
-            "messages": [
+            "messages": state["messages"] + [
                 HumanMessage(content = result["messages"][-1].content, name = "chartGenerator")
             ]
         },
@@ -90,5 +91,6 @@ def chartGeneratingNode(state: State) -> Command[Literal["supervisor"]]:
 
 docWritingSupervisorNode = makeSupervisorNode(
     llm,
-    ["docWriter", "noteTaker", "chartGenerator"]
+    # ["docWriter", "noteTaker", "chartGenerator"]
+    ["docWriter", "chartGenerator"]
 )

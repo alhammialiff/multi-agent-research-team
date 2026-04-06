@@ -23,15 +23,17 @@ from agents.divisionLead import State, makeDivisionLead
 
 def main():
 
+    # Sub-graph Research Team
     researchBuilder = StateGraph(State)
     researchBuilder.add_node("supervisor", researchSupervisorNode)
     researchBuilder.add_node("search", searchNode)
     researchBuilder.add_node("webScrapper", webScrapperNode)
 
     researchBuilder.add_edge(START, "supervisor")
-
     researchGraph = researchBuilder.compile()
 
+
+    # Sub-graph Writing Team
     writingBuilder = StateGraph(State)
     writingBuilder.add_node("supervisor", docWritingSupervisorNode)
     writingBuilder.add_node("docWriter", docWritingNode)
@@ -41,24 +43,42 @@ def main():
     writingBuilder.add_edge(START, "supervisor")
     writingGraph = writingBuilder.compile()
 
-    # Add a Division Lead to pass down requirements to two groups
+    # Main Graph: Division Leader
     divisionBuilder = StateGraph(State)
 
     # Define Division Lead and its graph relationship to the teams
+    load_dotenv()
     llm = ChatOpenAI(model = "gpt-4o")
+
     divisionLead = makeDivisionLead(llm, ["researchTeam", "writingTeam"])
+
+    divisionBuilder.add_node("divisionLead", divisionLead)
+    divisionBuilder.add_node("researchTeam",researchGraph)
+    divisionBuilder.add_node("writingTeam", writingGraph)
+
+    divisionBuilder.add_edge(START, "divisionLead")
+    divisionBuilder.add_edge("divisionLead","researchTeam")
+    divisionBuilder.add_edge("researchTeam", "writingTeam")
+    
+
+    divisionGraph = divisionBuilder.compile()
+
+
+
+
+    
     
     # Create nodes for the hierarchy
-    divisionBuilder.add_node("divisionLead", divisionLead)
-    divisionBuilder.add_node("researchTeam", researchGraph)
-    divisionBuilder.add_node("writingTeam", writingGraph)
+    # divisionBuilder.add_node("divisionLead", divisionLead)
+    # divisionBuilder.add_node("researchTeam", researchGraph)
+    # divisionBuilder.add_node("writingTeam", writingGraph)
 
     
     
     # Connect Division Lead and the two teams to form the hierarchy
-    divisionBuilder.add_edge(START, "divisionLead")
-    divisionBuilder.add_edge("divisionLead", "researchTeam")
-    divisionBuilder.add_edge("divisionLead", "writingTeam")
+    # divisionBuilder.add_edge(START, "divisionLead")
+    # divisionBuilder.add_edge("divisionLead", "researchTeam")
+    # divisionBuilder.add_edge("divisionLead", "writingTeam")
 
     # Compile graph (the hierarchy)
     divisionGraph = divisionBuilder.compile()
@@ -68,7 +88,7 @@ def main():
         {
             "messages": [
                 HumanMessage(
-                    content="Write a summary about how AI can further the advance of drug discovery and save it as a text document.")
+                    content="Write a report on how an AI-enabled Drug Discovery pipeline can be developed. Give examples of how Machine Learning, Deep Learning or Foundational Models can be used to advance this efforts. Introduce sections like Introduction, the Sections body, and Conclusion. Save report in markdown file.")
             ]
         },
         {

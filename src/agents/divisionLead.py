@@ -59,7 +59,7 @@ def makeDivisionLead(llm: BaseChatModel, members: List[str]) -> str:
         return Command(
             goto=goto,
             update={
-                "messages": [
+                "messages": state["messages"] + [
                     HumanMessage(content=f"Division lead selected {goto}", name="divisionLead")             
                 ]
             }
