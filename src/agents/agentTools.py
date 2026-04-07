@@ -70,9 +70,6 @@ def readDocument(
 
     fileToUse = os.path.join(os.getcwd(), "temp", fileName)
 
-    if not os.path.exists(fileToUse):
-        return f"Document '{fileName}' does not exist yet. Please create it first."
-
     with open(fileToUse, "r") as file:
         lines = file.readlines()
 

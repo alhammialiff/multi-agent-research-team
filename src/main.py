@@ -20,6 +20,7 @@ from agents.researchTeam import searchNode, webScrapperNode, researchSupervisorN
 from agents.writingTeam import chartGeneratingNode, docWritingNode, docWritingSupervisorNode, noteTakingNode
 from agents.supervisor import State, makeSupervisorNode
 from agents.divisionLead import State, makeDivisionLead
+from utils.readTextFile import readSpecFile
 
 def main():
 
@@ -48,7 +49,7 @@ def main():
 
     # Define Division Lead and its graph relationship to the teams
     load_dotenv()
-    llm = ChatOpenAI(model = "gpt-4o")
+    llm = ChatOpenAI(model = "gpt-5-mini")
 
     divisionLead = makeDivisionLead(llm, ["researchTeam", "writingTeam"])
 
@@ -61,34 +62,22 @@ def main():
     divisionBuilder.add_edge("researchTeam", "writingTeam")
     
 
-    divisionGraph = divisionBuilder.compile()
-
-
-
-
-    
-    
-    # Create nodes for the hierarchy
-    # divisionBuilder.add_node("divisionLead", divisionLead)
-    # divisionBuilder.add_node("researchTeam", researchGraph)
-    # divisionBuilder.add_node("writingTeam", writingGraph)
-
-    
-    
-    # Connect Division Lead and the two teams to form the hierarchy
-    # divisionBuilder.add_edge(START, "divisionLead")
-    # divisionBuilder.add_edge("divisionLead", "researchTeam")
-    # divisionBuilder.add_edge("divisionLead", "writingTeam")
-
     # Compile graph (the hierarchy)
     divisionGraph = divisionBuilder.compile()
 
+    # Read spec file 
+    SPEC_FILE_PATH = os.getenv("SPEC_FILE_PATH")
 
+
+    promptFromSpecFile = readSpecFile(SPEC_FILE_PATH)
+    
     for s in divisionGraph.stream(
         {
             "messages": [
                 HumanMessage(
-                    content="Write a report on how an AI-enabled Drug Discovery pipeline can be developed. Give examples of how Machine Learning, Deep Learning or Foundational Models can be used to advance this efforts. Introduce sections like Introduction, the Sections body, and Conclusion. Save report in markdown file.")
+                    # content="Write a report on how an AI-enabled Drug Discovery pipeline can be developed. Give examples of how Machine Learning, Deep Learning or Foundational Models can be used to advance this efforts. Introduce sections like Introduction, the Sections body, and Conclusion. Save report in markdown file.")
+                    content=promptFromSpecFile
+                )
             ]
         },
         {
