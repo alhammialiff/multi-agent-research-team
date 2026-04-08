@@ -1,5 +1,6 @@
 
 import os
+
 def readSpecFile(fileName: str) -> str:
     
     """ Return Text From Prompt Specification File"""

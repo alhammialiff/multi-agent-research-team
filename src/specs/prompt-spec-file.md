@@ -2,7 +2,7 @@
 Read this prompt section by section. 
 
 ## The Prompt
-Generate for me a report of one Deep Learning technique that may be used in Drug Discovery Visual Screening.
+Which comes first, the chicken or egg?
 
 ## Prompt Response Instruction
 - Below outlines how you should write the report.

@@ -12,6 +12,7 @@ from langchain.chat_models import BaseChatModel
 
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
+from langgraph import graph
 from langgraph.graph import MessagesState, StateGraph, START, END
 from langgraph.types import Command, Send
 from langgraph.prebuilt import create_react_agent
@@ -20,6 +21,7 @@ from agents.researchTeam import searchNode, webScrapperNode, researchSupervisorN
 from agents.writingTeam import chartGeneratingNode, docWritingNode, docWritingSupervisorNode, noteTakingNode
 from agents.supervisor import State, makeSupervisorNode
 from agents.divisionLead import State, makeDivisionLead
+from utils.printGraphToPng import printGraphToPng
 from utils.readTextFile import readSpecFile
 
 def main():
@@ -68,7 +70,6 @@ def main():
     # Read spec file 
     SPEC_FILE_PATH = os.getenv("SPEC_FILE_PATH")
 
-
     promptFromSpecFile = readSpecFile(SPEC_FILE_PATH)
     
     for s in divisionGraph.stream(
@@ -86,6 +87,9 @@ def main():
     ):
         print(s)
         print("----")
+
+
+    # printGraphToPng(divisionGraph)
 
 
 
