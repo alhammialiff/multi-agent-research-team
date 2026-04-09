@@ -2,14 +2,14 @@
 Read this prompt section by section. 
 
 ## The Prompt
-Which comes first, the chicken or egg?
+What is the best apparoach if I want to build an agentic AI system that simulates a team of software engineers that develops full stack applications? I want to use LangGraph for this.
 
 ## Prompt Response Instruction
 - Below outlines how you should write the report.
 
 ### Report Constraints
 1. Word Count without section headers: 
-    - Not more than 2000 words
+    - Not more than 5000 words
 2. Fontsize: 
     - #: For Report Title
     - ##: For Sections

@@ -23,7 +23,7 @@ from agents.agentTools import createOutline, editDocument, readDocument, writeDo
 
 
 load_dotenv()
-llm = ChatOpenAI(model = "gpt-4o")
+llm = ChatOpenAI(model = "gpt-5-mini")
 
 docWriterAgent = create_react_agent(
     llm,

@@ -15,11 +15,22 @@ from langgraph.graph import MessagesState, StateGraph, START, END
 from langgraph.types import Command, Send
 from langgraph.prebuilt import create_react_agent
 
+from pydantic import BaseModel, Field
+
+
+class MessageClassififer(BaseModel):
+    message_type: Literal["emotional", "logical"] = Field(
+        ...,
+        description=""
+    )
 
 class State(MessagesState):
     
     # The next node that it is going to hand over to
     next: str
+
+    # Message types 
+    message_types: str | None
 
 
 def makeSupervisorNode(llm: BaseChatModel, members: List[str]) -> str:

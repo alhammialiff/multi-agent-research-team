@@ -5,7 +5,7 @@ def readSpecFile(fileName: str) -> str:
     
     """ Return Text From Prompt Specification File"""
 
-    fileToUse = os.path.join(os.getcwd(), "src", "specs", fileName)
+    fileToUse = os.path.join(os.getcwd(), "specs", fileName)
     start = 0
     end = None
 

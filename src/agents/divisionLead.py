@@ -13,7 +13,7 @@ from langchain.chat_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
 from langgraph.graph import MessagesState, StateGraph, START, END
-from langgraph.types import Command, Send
+from langgraph.types import Command, Send, interrupt
 from langgraph.prebuilt import create_react_agent
 
 
@@ -29,9 +29,9 @@ def makeDivisionLead(llm: BaseChatModel, members: List[str]) -> str:
     options = ["FINISH"] + members
     systemPrompts = (
         f"You are the division lead for two teams: {members}"
-        " Given the following user request, decide which team you should work on the request."
-        " You should review outputs from each team, and decide if it is good enough to progress to"
-        " the next steps. Finally, you will decide if the final result is good enough as the final response."
+        " If research has not been done yet, delegate to the research team."
+        " If the writing team has not produced a first draft yet, delegate to the writing team. Always review the output of each team before passing"
+        " If the writing team has produced a draft, review it first, and ask user for feedback. If user has feedback, pass it back to the research team for further research."
         " When finished, respond with FINISH"
     )
 
@@ -52,8 +52,36 @@ def makeDivisionLead(llm: BaseChatModel, members: List[str]) -> str:
         # Define where should it pipe its output to (Next agent, or END?)
         goto = response["next"]
 
-        if goto == "FINISH":
-            goto = END
+        # [Guarded Clause] If there is a report from the writing team, interrupt the flow to ask user for feedback on the report before deciding where to handoff control
+        if hasReportFromWritingTeam(state):
+
+            # Interrupt the flow to ask user for feedback on the report from the writing team
+            answer = interrupt("Division Lead: Do you find the report satisfactory? (y/n) ")
+            
+
+            if answer.lower() == "yes" or answer.lower() == "y" or answer.upper() == "Y":
+
+                # End process if user is satisfied with the report
+                return Command(
+                    goto=END,
+                    update={
+                        "messages": state["messages"] + [
+                            HumanMessage(content=f"Division lead has no further feedback, ending the process", name="divisionLead")             
+                        ]
+                    }
+                )
+            
+            else:
+
+                # Handoff control to research back
+                return Command(
+                    goto="researchTeam",
+                    update={
+                        "messages": state["messages"] + [
+                            HumanMessage(content=f"Division lead has feedback on the report, asking research team to do further research", name="divisionLead")             
+                        ]
+                    }
+                )
 
         # Handoff control to another agent
         return Command(
@@ -64,5 +92,13 @@ def makeDivisionLead(llm: BaseChatModel, members: List[str]) -> str:
                 ]
             }
         )
+    
+    def hasReportFromWritingTeam(state: State) -> bool:
+
+        for message in state["messages"]:
+            if message.name == "docWriter":
+                return True
+        
+        return False
     
     return divisionLead

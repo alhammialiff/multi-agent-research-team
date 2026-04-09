@@ -20,7 +20,7 @@ from agents.agentTools import scrapeWebpages
 from agents.supervisor import State, makeSupervisorNode
 
 load_dotenv()
-llm = ChatOpenAI(model = "gpt-4o")
+llm = ChatOpenAI(model = "gpt-5-mini")
 tavilyTool = TavilySearch(max_result=3)
 
 searchAgent = create_react_agent(llm, tools=[tavilyTool])
@@ -50,6 +50,7 @@ def webScrapperNode(state: State) -> Command[Literal["supervisor"]]:
         },
         goto = "supervisor"
     )
+
 
 
 researchSupervisorNode = makeSupervisorNode(llm, ["search", "webScrapper"])

@@ -24,19 +24,31 @@ def scrapeWebpages(urls: List[str]) -> str:
     os.environ["SSL_CERT_FILE"] = certifi.where()
     os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
-    loader = WebBaseLoader(urls)
-    docs = loader.load()
+    results = []
 
-    # return "\n\n".join(
-    #     [
-    #         f'<Document name="{docs.metadata.get("title","")}">\n{docs.page_content}\n</Document>'
-    #     ]
-    # )
+    for url in urls:
+        
+        try:
+
+            # Use WebBaseLoader to scrape the webpage and retrieve its content as documents
+            loader = WebBaseLoader(urls)
+            docs = loader.load()
+
+            # Append the content of each document to the results list, wrapped in <Document> tags with the title as metadata
+            for doc in docs:
+                results.append(
+                    f'<Document name="{doc.metadata.get("title","")}">\n{doc.page_content}\n</Document>'
+                )
+
+        except Exception as e:
+
+            # If there is an error during scraping, append an error message to the results list, wrapped in <Error> tags with the URL as metadata
+            results.append(f'<Error url="{url}">Failed to scrape: {str(e)}</Error>')
+
 
     # Run a list comprehension that parses each doc in the doc lists retrieved
     return "\n\n".join(
-        f'<Document name="{doc.metadata.get("title","")}">\n{doc.page_content}\n</Document>'
-        for doc in docs
+        results
     )
 
 
@@ -52,7 +64,7 @@ def createOutline(
     os.makedirs(tempDir, exist_ok=True)
     fileToUse = os.path.join(tempDir, fileName)
 
-    with open(fileToUse, "w") as file:
+    with open(fileToUse, "w", encoding="utf-8") as file:
         for i, point in enumerate(points):
             file.write(f"{i+1}. {point}\n")
 
@@ -70,7 +82,7 @@ def readDocument(
 
     fileToUse = os.path.join(os.getcwd(), "temp", fileName)
 
-    with open(fileToUse, "r") as file:
+    with open(fileToUse, "r", encoding="utf-8") as file:
         lines = file.readlines()
 
     if start is None:
@@ -91,7 +103,7 @@ def writeDocument(
     os.makedirs(tempDir, exist_ok=True)
     fileToUse = os.path.join(tempDir, fileName)
     
-    with open(fileToUse, "w") as file:
+    with open(fileToUse, "w", encoding="utf-8") as file:
         file.write(content)
 
     return f"Document saved to {fileName}"
@@ -109,7 +121,7 @@ def editDocument(
     os.makedirs(tempDir, exist_ok=True)
     fileToUse = os.path.join(tempDir, fileName)
 
-    with open(fileToUse, "r") as file:
+    with open(fileToUse, "r", encoding="utf-8") as file:
         lines = file.readlines()
 
     sortedInserts = sorted(insert.items())
@@ -124,7 +136,7 @@ def editDocument(
             return f"Error: line number {lineNumber} is out of range"
         
     # Save file
-    with open(fileToUse, "w") as file:
+    with open(fileToUse, "w", encoding="utf-8") as file:
         file.writelines(lines)
 
     return f"Document edited and saved to {fileName}"
