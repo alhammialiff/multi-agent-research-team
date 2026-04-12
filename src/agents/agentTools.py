@@ -16,6 +16,17 @@ from langgraph.graph import MessagesState, StateGraph, START, END
 from langgraph.types import Command, Send
 from langgraph.prebuilt import create_react_agent
 
+# Scikit Learn
+from pandas import DataFrame
+from sklearn.ensemble import RandomForestRegressor
+
+# RDKit
+from rdkit import Chem
+from rdkit.Chem.rdFingerprintGenerator import GetMorganGenerator
+
+# TDC Dataset
+from tdc.single_pred import ADME
+
 @tool
 def scrapeWebpages(urls: List[str]) -> str:
 
@@ -154,3 +165,89 @@ def pythonReplTool(
     except BaseException as e:
         return f"Failed to execute. Error: {repr(e)}"
     return f"Successfully executed: \n ```python \n{code}``` \n Stdout: {result}"
+
+
+
+
+
+
+
+
+@tool
+def obtainAdmeDataset(
+    datasetName: Annotated[str, "The name of requested dataset to obtain from TDC python library"]
+):
+    
+    """Extract the dataset name from prompt, obtain it from TDC python library and 
+    return the dataset split"""
+
+    data = ADME(name = datasetName)
+    
+    # The entire dataset (in pandas dataframe) 
+    df = data.get_data()
+
+    # The train, val, test split
+    splits = data.get_split()
+
+    return df, splits
+
+
+@tool
+def featurizeRawSmile(
+
+    ### LangChain cannot read DataFrame - find a way to convert this
+    dataset: Annotated[dict, "The dataset that contains a raw SMILE column"]
+):
+    
+    """Convert columns with raw SMILES into fingerprints and return featurised dataset"""
+    
+    # An function to convert raw smiles into fingerprint
+    def smilesToFingerprint(
+        smiles: Annotated[str, "The SMILES string to be converted into fingerprints"]        
+    ):
+        
+        # [Guard clause]
+        if mol is None:
+            return [0] * 2048
+        
+        mol = Chem.MolFromSmiles(smiles)
+        generator = GetMorganGenerator(radius = 3, fpSize = 2048)
+        fingerprint = list(generator.GetFingerprintAsNumpy(mol))
+
+        return fingerprint
+    
+    featurisedDataset = dataset["Drug"].apply(smilesToFingerprint)
+
+    return featurisedDataset
+
+
+@tool
+def fitRandomForestRegressor(
+    trainingDataset: Annotated[DataFrame, "The TDC training dataset to be used for model fitting"],
+):
+    
+    """Train random forest with training dataset and return the model"""
+    
+    xTrain = trainingDataset["Drug"]
+    yTrain = trainingDataset['Y']
+
+    model = RandomForestRegressor(
+        random_state = 42
+    )
+
+    model.fit(xTrain, yTrain)
+
+    model.predict()
+
+    return model
+
+@tool
+def evaluateModel(
+    model: Annotated[RandomForestRegressor, "The trained model to be evaluated"],
+    testDataset: Annotated[str, "The test dataset to evaluate the model against"]
+):
+    
+    ### STOP HERE
+    model.predict(
+        testDataset[""]
+    )

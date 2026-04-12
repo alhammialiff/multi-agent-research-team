@@ -78,7 +78,7 @@ def main():
     divisionBuilder.add_edge("writingTeam","divisionLead")
     
 
-    # Compile graph (the hierarchy)
+    # Compile graph (the hierarchy) and add MemorySaver
     divisionGraph = divisionBuilder.compile(checkpointer=MemorySaver())
 
     # Read spec file 
