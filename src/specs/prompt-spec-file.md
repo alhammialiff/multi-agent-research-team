@@ -2,14 +2,15 @@
 Read this prompt section by section. 
 
 ## The Prompt
-What is the best apparoach if I want to build an agentic AI system that simulates a team of software engineers that develops full stack applications? I want to use LangGraph for this.
+Research about Caco-2 Cell Permeability. Then, retrieve TDC's Caco2_Wang dataset and perform machine learning predictions. Return the results and your explanation in the report.
+
 
 ## Prompt Response Instruction
 - Below outlines how you should write the report.
 
 ### Report Constraints
 1. Word Count without section headers: 
-    - Not more than 5000 words
+    - Not more than 2000 words
 2. Fontsize: 
     - #: For Report Title
     - ##: For Sections

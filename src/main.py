@@ -20,7 +20,9 @@ from langgraph.types import Command, Send
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
 
+from agents import dataScienceTeam
 from agents.researchTeam import searchNode, webScrapperNode, researchSupervisorNode
+from agents.dataScienceTeam import searchDatasetNode, preprocessDatasetNode, trainModelNode, evaluateModelNode, dataScienceSupervisor
 from agents.writingTeam import chartGeneratingNode, docWritingNode, docWritingSupervisorNode, noteTakingNode
 from agents.supervisor import State, makeSupervisorNode
 from agents.divisionLead import State, makeDivisionLead
@@ -47,6 +49,16 @@ def main():
     researchBuilder.add_edge(START, "supervisor")
     researchGraph = researchBuilder.compile()
 
+    # Sub-graph - Data Science Team
+    dataScienceBuilder = StateGraph(State)
+    dataScienceBuilder.add_node("supervisor", dataScienceSupervisor)
+    dataScienceBuilder.add_node("searchDataset", searchDatasetNode)
+    dataScienceBuilder.add_node("preprocessDataset", preprocessDatasetNode)
+    dataScienceBuilder.add_node("trainModel", trainModelNode)
+    dataScienceBuilder.add_node("evaluateModel", evaluateModelNode)
+
+    dataScienceBuilder.add_edge(START, "supervisor")
+    dataScienceGraph = dataScienceBuilder.compile()
 
     # Sub-graph Writing Team
     writingBuilder = StateGraph(State)
@@ -65,14 +77,16 @@ def main():
     load_dotenv()
     llm = ChatOpenAI(model = "gpt-5-mini")
 
-    divisionLead = makeDivisionLead(llm, ["researchTeam", "writingTeam"])
+    divisionLead = makeDivisionLead(llm, ["researchTeam", "dataScienceTeam", "writingTeam"])
 
     divisionBuilder.add_node("divisionLead", divisionLead)
     divisionBuilder.add_node("researchTeam",researchGraph)
+    divisionBuilder.add_node("dataScienceTeam", dataScienceGraph)
     divisionBuilder.add_node("writingTeam", writingGraph)
 
     divisionBuilder.add_edge(START, "divisionLead")
-    divisionBuilder.add_edge("researchTeam","writingTeam")
+    divisionBuilder.add_edge("researchTeam","dataScienceTeam")
+    divisionBuilder.add_edge("dataScienceTeam","writingTeam")
     # divisionBuilder.add_edge("divisionLead","researchTeam")
     # divisionBuilder.add_edge("researchTeam", "writingTeam")
     divisionBuilder.add_edge("writingTeam","divisionLead")
@@ -118,6 +132,8 @@ def main():
                     color = CYAN
                 case "researchTeam":
                     color = BLUE
+                case "dataScienceTeam":
+                    color = GREEN
                 case "writingTeam":
                     color = YELLOW
                 case _:
@@ -162,7 +178,7 @@ def main():
         print("------------------------------\n")
     
 
-    # printGraphToPng(divisionGraph)
+    printGraphToPng(divisionGraph)
 
 
 

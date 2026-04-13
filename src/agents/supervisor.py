@@ -41,8 +41,11 @@ def makeSupervisorNode(llm: BaseChatModel, members: List[str]) -> str:
     systemPrompts = (
         "You are a supervisor tasked with managing a conversation between the" 
         f" following workers: {members}. Given the following request," 
-        "you are free to delegate the task to your workers. But always review their output before passing to the next worker. When finished," 
-        " respond with FINISH."
+        " First, delegate to researchTeam to gather background knowledge."
+        " Then, delegate to dataScienceTeam to retrieve the dataset, preprocess it, train and evaluate a model."
+        " Then, delegate to writingTeam to produce a report."
+        " Review the writing team's output and ask the user for feedback. If feedback is given, pass it back to researchTeam."
+        " When finished, respond with FINISH."
     )
 
     class Router(TypedDict):

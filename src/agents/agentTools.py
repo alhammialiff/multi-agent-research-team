@@ -17,6 +17,7 @@ from langgraph.types import Command, Send
 from langgraph.prebuilt import create_react_agent
 
 # Scikit Learn
+import pandas as pd
 from pandas import DataFrame
 from sklearn.ensemble import RandomForestRegressor
 
@@ -25,6 +26,7 @@ from rdkit import Chem
 from rdkit.Chem.rdFingerprintGenerator import GetMorganGenerator
 
 # TDC Dataset
+from sklearn.metrics import r2_score
 from tdc.single_pred import ADME
 
 @tool
@@ -169,9 +171,9 @@ def pythonReplTool(
 
 
 
-
-
-
+# In-memory global var to flexibly pass Dataframe JSON between tools (agents cannot parse dataframes)
+jsonDataset = {}
+model = None
 
 @tool
 def obtainAdmeDataset(
@@ -179,28 +181,39 @@ def obtainAdmeDataset(
 ):
     
     """Extract the dataset name from prompt, obtain it from TDC python library and 
-    return the dataset split"""
+    return the JSON dataset """
 
     data = ADME(name = datasetName)
     
     # The entire dataset (in pandas dataframe) 
     df = data.get_data()
 
+    # Convert dataset to JSON for other agent tools
+    jsonDataset["train"] = splits["train"].to_json(orient="records")
+    jsonDataset["valid"] = splits["valid"].to_json(orient="records")
+    jsonDataset["test"] = splits["test"].to_json(orient="records")
+
     # The train, val, test split
     splits = data.get_split()
 
-    return df, splits
+    return "ADME obtained and converted into JSON for further processing"
 
 
 @tool
 def featurizeRawSmile(
 
     ### LangChain cannot read DataFrame - find a way to convert this
-    dataset: Annotated[dict, "The dataset that contains a raw SMILE column"]
+    # dataset: Annotated[dict, "The dataset that contains a raw SMILE column"]
 ):
     
-    """Convert columns with raw SMILES into fingerprints and return featurised dataset"""
+    """Convert columns with raw SMILES into fingerprints and return featurised dataset."""
+
+    # Convert in-memory JSON back into pandas Dataframe
+    df = pd.read_json(jsonDataset, orient="records")
     
+    if(df is None):
+        return "Dataframe is empty. It could be that we might have use this tool before obtaining an ADME Dataset."
+
     # An function to convert raw smiles into fingerprint
     def smilesToFingerprint(
         smiles: Annotated[str, "The SMILES string to be converted into fingerprints"]        
@@ -216,20 +229,25 @@ def featurizeRawSmile(
 
         return fingerprint
     
-    featurisedDataset = dataset["Drug"].apply(smilesToFingerprint)
+    
+    featurisedDataset = df["Drug"].apply(smilesToFingerprint)
 
-    return featurisedDataset
+    # Convert back to JSON and update jsonDataset
+    jsonDataset = featurisedDataset.to_json()
+
+    return "Dataset featurized. JSON Dataframe updated."
 
 
 @tool
 def fitRandomForestRegressor(
-    trainingDataset: Annotated[DataFrame, "The TDC training dataset to be used for model fitting"],
+    # trainingDataset: Annotated[DataFrame, "The TDC training dataset to be used for model fitting"],
 ):
     
     """Train random forest with training dataset and return the model"""
     
-    xTrain = trainingDataset["Drug"]
-    yTrain = trainingDataset['Y']
+    # Read in-memory jsonDataset and extract training features and target
+    xTrain = pd.read_json(jsonDataset["train"]["Drug"], orient="records")
+    yTrain = pd.read_json(jsonDataset["train"]['Y'], orient="records")
 
     model = RandomForestRegressor(
         random_state = 42
@@ -237,17 +255,27 @@ def fitRandomForestRegressor(
 
     model.fit(xTrain, yTrain)
 
-    model.predict()
-
-    return model
+    return "Model fitted and ready to test."
 
 @tool
-def evaluateModel(
-    model: Annotated[RandomForestRegressor, "The trained model to be evaluated"],
-    testDataset: Annotated[str, "The test dataset to evaluate the model against"]
+def evaluateModelNode(
+    # model: Annotated[RandomForestRegressor, "The trained model to be evaluated"],
+    # testDataset: Annotated[str, "The test dataset to evaluate the model against"]
 ):
     
-    ### STOP HERE
-    model.predict(
-        testDataset[""]
-    )
+    """Evaluate r2 score of model and return the"""
+    
+    # xTrain = pd.read_json(jsonDataset["train"]["Drug"], orient="records")
+    # yTrain = pd.read_json(jsonDataset["train"]['Y'], orient="records")
+    
+    xTest = pd.read_json(jsonDataset["test"]["Drug"], orient="records")
+    
+    # Target
+    yTest = pd.read_json(jsonDataset["test"]["Y"], orient="records")
+    
+    # Predict
+    yPred = model.predict(xTest)
+
+    score = r2_score(yTest, yPred)
+
+    return f"Model evaluated. R2 Score: {score:.4f}%"
