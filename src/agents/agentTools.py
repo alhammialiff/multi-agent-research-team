@@ -282,6 +282,17 @@ def evaluateModel(
     # Predict
     yPred = model.predict(xTest)
 
-    score = r2_score(yTest, yPred)
+    residuals = yTest - yPred
 
-    return f"Model evaluated. R2 Score: {score:.4f}%"
+    r2Score = r2_score(yTest, yPred)
+    mae = (residuals.abs()).mean()
+    rmse = (residuals ** 2).mean() ** 0.5
+
+    return (
+        f"Model evaluated.\n"
+        f"R2 Score: {r2Score:.4f}\n"
+        f"RMSE: {rmse:.4f}\n"
+        f"MAE: {mae:.4f}\n"
+        f"Residuals — mean: {residuals.mean():.4f}, std: {residuals.std():.4f}, "
+        f"min: {residuals.min():.4f}, max: {residuals.max():.4f}"
+    )
