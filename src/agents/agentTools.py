@@ -208,6 +208,8 @@ def featurizeRawSmile(
     
     """Convert columns with raw SMILES into fingerprints and return featurised dataset."""
 
+    global jsonDataset
+
     # Convert in-memory JSON back into pandas Dataframe
     df = pd.read_json(jsonDataset["train"], orient="records")
     
@@ -231,10 +233,10 @@ def featurizeRawSmile(
         return fingerprint
     
     
-    featurisedDataset = df["Drug"].apply(smilesToFingerprint)
+    df["Drug"] = df["Drug"].apply(smilesToFingerprint)
 
     # Convert back to JSON and update jsonDataset
-    jsonDataset = featurisedDataset.to_json()
+    jsonDataset["train"] = df.to_json(orient="records")
 
     return "Dataset featurized. JSON Dataframe updated."
 
@@ -245,10 +247,13 @@ def fitRandomForestRegressor(
 ):
     
     """Train random forest with training dataset and return the model"""
-    
+
+    global model
+
     # Read in-memory jsonDataset and extract training features and target
-    xTrain = pd.read_json(jsonDataset["train"]["Drug"], orient="records")
-    yTrain = pd.read_json(jsonDataset["train"]['Y'], orient="records")
+    df_train = pd.read_json(jsonDataset["train"], orient="records")
+    xTrain = df_train["Drug"].tolist()
+    yTrain = df_train["Y"]
 
     model = RandomForestRegressor(
         random_state = 42
@@ -266,14 +271,14 @@ def evaluateModel(
     
     """Evaluate r2 score of model on test dataset and return the score"""
     
-    # xTrain = pd.read_json(jsonDataset["train"]["Drug"], orient="records")
-    # yTrain = pd.read_json(jsonDataset["train"]['Y'], orient="records")
+    global model
     
-    xTest = pd.read_json(jsonDataset["test"]["Drug"], orient="records")
-    
+    df_test = pd.read_json(jsonDataset["test"], orient="records")
+    xTest = df_test["Drug"].tolist()
+
     # Target
-    yTest = pd.read_json(jsonDataset["test"]["Y"], orient="records")
-    
+    yTest = df_test["Y"]
+
     # Predict
     yPred = model.predict(xTest)
 

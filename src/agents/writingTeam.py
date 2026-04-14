@@ -20,6 +20,7 @@ from langgraph.prebuilt import create_react_agent
 
 from agents.supervisor import State, makeSupervisorNode
 from agents.agentTools import createOutline, editDocument, readDocument, writeDocument, pythonReplTool, scrapeWebpages
+from utils.optimiseContext import optimiseContext
 
 
 load_dotenv()
@@ -36,7 +37,7 @@ docWriterAgent = create_react_agent(
 
 def docWritingNode(state: State) -> Command[Literal["supervisor"]]:
 
-    result = docWriterAgent.invoke(state)
+    result = docWriterAgent.invoke(optimiseContext(state))
 
     return Command(
         update = {
@@ -59,7 +60,7 @@ noteTakingAgent = create_react_agent(
 
 def noteTakingNode(state: State) -> Command[Literal["supervisor"]]:
     
-    result = noteTakingAgent.invoke(state)
+    result = noteTakingAgent.invoke(optimiseContext(state))
 
     return Command(
         update = {
@@ -77,7 +78,7 @@ chartGeneratingAgent = create_react_agent(
 
 def chartGeneratingNode(state: State) -> Command[Literal["supervisor"]]:
     
-    result = chartGeneratingAgent.invoke(state)
+    result = chartGeneratingAgent.invoke(optimiseContext(state))
 
     return Command(
         update = {
