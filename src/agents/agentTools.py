@@ -188,13 +188,13 @@ def obtainAdmeDataset(
     # The entire dataset (in pandas dataframe) 
     df = data.get_data()
 
+    # The train, val, test split
+    splits = data.get_split()
+
     # Convert dataset to JSON for other agent tools
     jsonDataset["train"] = splits["train"].to_json(orient="records")
     jsonDataset["valid"] = splits["valid"].to_json(orient="records")
     jsonDataset["test"] = splits["test"].to_json(orient="records")
-
-    # The train, val, test split
-    splits = data.get_split()
 
     return "ADME obtained and converted into JSON for further processing"
 
@@ -209,7 +209,7 @@ def featurizeRawSmile(
     """Convert columns with raw SMILES into fingerprints and return featurised dataset."""
 
     # Convert in-memory JSON back into pandas Dataframe
-    df = pd.read_json(jsonDataset, orient="records")
+    df = pd.read_json(jsonDataset["train"], orient="records")
     
     if(df is None):
         return "Dataframe is empty. It could be that we might have use this tool before obtaining an ADME Dataset."
@@ -219,11 +219,12 @@ def featurizeRawSmile(
         smiles: Annotated[str, "The SMILES string to be converted into fingerprints"]        
     ):
         
+        mol = Chem.MolFromSmiles(smiles)
+        
         # [Guard clause]
         if mol is None:
             return [0] * 2048
         
-        mol = Chem.MolFromSmiles(smiles)
         generator = GetMorganGenerator(radius = 3, fpSize = 2048)
         fingerprint = list(generator.GetFingerprintAsNumpy(mol))
 
@@ -258,12 +259,12 @@ def fitRandomForestRegressor(
     return "Model fitted and ready to test."
 
 @tool
-def evaluateModelNode(
+def evaluateModel(
     # model: Annotated[RandomForestRegressor, "The trained model to be evaluated"],
     # testDataset: Annotated[str, "The test dataset to evaluate the model against"]
 ):
     
-    """Evaluate r2 score of model and return the"""
+    """Evaluate r2 score of model on test dataset and return the score"""
     
     # xTrain = pd.read_json(jsonDataset["train"]["Drug"], orient="records")
     # yTrain = pd.read_json(jsonDataset["train"]['Y'], orient="records")

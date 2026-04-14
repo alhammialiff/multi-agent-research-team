@@ -1,0 +1,50 @@
+# Conda environment file for reproducible Caco2_Wang ML workflow
+# Usage: conda env create -f environment.yml
+# Notes:
+# - We install RDKit and core scientific packages via conda-forge for reliability.
+# - PyTorch is installed via the pytorch channel with cudatoolkit=11.7 for GPU support.
+# - PyTorch Geometric (PyG) wheels vary by PyTorch/CUDA versions; installation is included
+#   in the pip section but may need adjustment depending on PyTorch release. See README.md.
+
+name: caco2_env
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - numpy=1.24
+  - pandas=1.5
+  - scikit-learn=1.2
+  - rdkit=2023.03.1  # conda-forge RDKit build
+  - xgboost=1.7
+  - lightgbm=3.3
+  - joblib
+  - matplotlib
+  - seaborn
+  - shap
+  - cudatoolkit=11.7  # required for GPU-enabled PyTorch (only used if creating GPU-enabled env)
+  - pytorch=2.1.0     # installed from pytorch channel (will pick compatible build with cudatoolkit)
+  - pip:
+    - tdc>=1.2.0
+    - optuna>=3.0.0
+    - rdkit-pypi>=2023.3.1  # optional fallback if conda RDKit is not used
+    - networkx
+    - tqdm
+    - matplotlib-venn
+    - pyg-base==0.9.2  # placeholder; real PyG components installed below or in README instructions
+    - torchmetrics
+
+# IMPORTANT: PyTorch-Geometric (PyG) components often require matching wheels to the
+# installed PyTorch+CUDA versions. After creating the environment, install PyG using
+# the recommended platform-specific commands from https://pytorch-geometric.readthedocs.io/
+# Example (for PyTorch 2.1.0 + CUDA 11.7):
+#   conda activate caco2_env
+#   pip install --verbose torch-scatter -f https://data.pyg.org/whl/torch-2.1.0+cu117.html
+#   pip install --verbose torch-sparse -f https://data.pyg.org/whl/torch-2.1.0+cu117.html
+#   pip install --verbose torch-cluster -f https://data.pyg.org/whl/torch-2.1.0+cu117.html
+#   pip install --verbose torch-spline-conv -f https://data.pyg.org/whl/torch-2.1.0+cu117.html
+#   pip install torch-geometric
+# For CPU-only installation, follow the PyG docs for CPU wheel URLs or use pip install --no-deps torch-geometric
+# If you prefer a CPU-only environment, remove cudatoolkit from this file and install 'pytorch' with cpu-only build.

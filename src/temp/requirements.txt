@@ -1,0 +1,32 @@
+# requirements.txt for Caco2_Wang ML Notebook (pip installable components)
+# Note: RDKit and PyTorch-Geometric are best installed via conda; RDKit pip wheels (rdkit-pypi) exist
+# but are less tested. Use conda-forge for RDKit and follow PyG instructions for matching PyTorch/CUDA.
+
+# Core
+python>=3.8
+pandas==1.5.3
+numpy==1.24.3
+scikit-learn==1.2.2
+tdc>=1.2.0
+rdkit-pypi==2023.3.6  # use conda rdkit if possible: conda install -c conda-forge rdkit
+xgboost==1.7.6
+lightgbm==3.3.5
+joblib==1.2.0
+matplotlib==3.7.1
+seaborn==0.12.2
+shap==0.41.0
+
+# Deep learning and GNN (install PyTorch and PyG according to your CUDA setup)
+torch==2.1.0
+# PyG: follow instructions at https://pytorch-geometric.readthedocs.io/
+# Example (for CUDA 11.7 + PyTorch 2.1.0) install steps are provided in README.md
+
+# Utilities
+tqdm==4.64.1
+networkx==3.1
+optuna==3.1.0
+
+# Note on installation:
+# - For RDKit: conda install -c conda-forge rdkit==2023.03.1
+# - For PyTorch: follow https://pytorch.org/get-started/locally/
+# - For PyG: follow https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html

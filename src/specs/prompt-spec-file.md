@@ -2,7 +2,7 @@
 Read this prompt section by section. 
 
 ## The Prompt
-Research about Caco-2 Cell Permeability. Then, retrieve TDC's Caco2_Wang dataset and perform machine learning predictions. Return the results and your explanation in the report.
+Research about Caco-2 Cell Permeability. Then, retrieve TDC's Caco2_Wang dataset and perform machine learning predictions. Return the results of the predictions and explain it in the report.
 
 
 ## Prompt Response Instruction

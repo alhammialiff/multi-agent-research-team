@@ -1,0 +1,41 @@
+name: caco2_env_cpu
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - rdkit=2023.9.4      # RDKit from conda-forge (pin may be adjusted to latest compatible)
+  - numpy=1.24
+  - pandas=1.5
+  - scikit-learn=1.2
+  - xgboost=1.7
+  - lightgbm=4.0
+  - joblib=1.2
+  - matplotlib=3.7
+  - seaborn=0.12
+  - shap=0.41
+  - pip:
+      - tdc>=0.4.0
+      - rdkit-pypi==2023.9.4  # optional pip fallback (prefer conda rdkit)
+      - optuna>=3.0
+      - torch==2.1.0+cpu        # CPU-only PyTorch wheel; install via pip with cpu tag when using pip
+      - pyg-lib==0.2.0         # placeholder; PyG CPU wheels are version/CUDA-specific. See notes below.
+      - torch-scatter==2.1.1   # PyG dependencies; wheel availability varies by platform
+      - torch-sparse==0.7.4
+      - torch-cluster==1.6.0
+      - torch-spline-conv==1.2.1
+      - torch-geometric==2.3.0
+
+# Notes:
+# 1) RDKit: Installing RDKit via conda-forge is recommended. The pip rdkit-pypi package exists but is not
+#    universally recommended for production. If you use conda, the pip rdkit-pypi entry can be ignored.
+# 2) PyTorch / PyG: PyTorch and PyG binaries are sensitive to your platform (OS, CPU vs GPU). For CPU-only
+#    usage, install the CPU wheels from PyPI (for PyTorch) and the corresponding PyG CPU wheels following
+#    PyG installation instructions: https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html
+#    The pip lines above act as placeholders; you may need to adjust versions or install PyG via conda-forge.
+# 3) To create the environment:
+#    conda env create -f environment_cpu.yml
+#    conda activate caco2_env_cpu
+# 4) If PyG installation fails via pip, prefer installing PyG via conda-forge or follow the platform-specific
+#    wheel installation instructions on the PyG website.

@@ -16,7 +16,7 @@ from langgraph.graph import MessagesState, StateGraph, START, END
 from langgraph.types import Command, Send
 from langgraph.prebuilt import create_react_agent
 
-from agents.agentTools import evaluateModelNode, featurizeRawSmile, fitRandomForestRegressor, obtainAdmeDataset
+from agents.agentTools import evaluateModel, featurizeRawSmile, fitRandomForestRegressor, obtainAdmeDataset
 from agents.supervisor import State, makeSupervisorNode
 from utils.optimiseContext import optimiseContext
 
@@ -35,8 +35,9 @@ def searchDatasetNode(state: State) -> Command[Literal["supervisor"]]:
     result = datasetSearchAgent.invoke(optimiseContext(state))
 
     return Command(
+        goto="preprocessDataset",
         update = {
-            "messages": state["messages"] + [HumanMessage(content=result["message"][-1].content, name="searchDataset")]
+            "messages": state["messages"] + [HumanMessage(content=result["messages"][-1].content, name="searchDataset")]
         }
     )
 
@@ -55,6 +56,7 @@ def preprocessDatasetNode(state: State) -> Command[Literal["supervisor"]]:
     print(f"[DEBUG] preprocessDataset — {len(state['messages'])} messages, ~{total_chars} chars")
     
     return Command(
+        goto="trainModel",
         update = {
             "messages": state["messages"] + [HumanMessage(content=result["messages"][-1].content, name="preprocessDataset")]
         }
@@ -69,19 +71,21 @@ def trainModelNode(state: State) -> Command[Literal["supervisor"]]:
     result = modelTrainingAgent.invoke(optimiseContext(state))
 
     return Command(
+        goto="evaluateModel",
         update = {
             "messages": state["messages"] + [HumanMessage(content=result["messages"][-1].content, name="trainModel")]
         }
     )
 
 # Instantiate Agents - Model Evaluation Agent
-modelEvaluationAgent = create_react_agent(llm, tools=[evaluateModelNode])
+modelEvaluationAgent = create_react_agent(llm, tools=[evaluateModel])
 
 def evaluateModelNode(state: State) -> Command[Literal["supervisor"]]:
 
     result = modelEvaluationAgent.invoke(optimiseContext(state))
 
     return Command(
+        goto="supervisor",
         update={
             "messages": state["messages"] + [HumanMessage(content=result["messages"][-1].content, name="evaluateModel")]
         }

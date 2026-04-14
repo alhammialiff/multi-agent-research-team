@@ -77,15 +77,16 @@ def main():
     load_dotenv()
     llm = ChatOpenAI(model = "gpt-5-mini")
 
-    divisionLead = makeDivisionLead(llm, ["researchTeam", "dataScienceTeam", "writingTeam"])
+    divisionLead = makeDivisionLead(llm, ["dataScienceTeam", "writingTeam"])
+    # divisionLead = makeDivisionLead(llm, ["researchTeam", "dataScienceTeam", "writingTeam"])
 
     divisionBuilder.add_node("divisionLead", divisionLead)
-    divisionBuilder.add_node("researchTeam",researchGraph)
+    # divisionBuilder.add_node("researchTeam",researchGraph)
     divisionBuilder.add_node("dataScienceTeam", dataScienceGraph)
     divisionBuilder.add_node("writingTeam", writingGraph)
 
     divisionBuilder.add_edge(START, "divisionLead")
-    divisionBuilder.add_edge("researchTeam","dataScienceTeam")
+    # divisionBuilder.add_edge("researchTeam","dataScienceTeam")
     divisionBuilder.add_edge("dataScienceTeam","writingTeam")
     # divisionBuilder.add_edge("divisionLead","researchTeam")
     # divisionBuilder.add_edge("researchTeam", "writingTeam")
@@ -144,6 +145,11 @@ def main():
                 print("Messages:")
                 for message in output["messages"]:
                     message.pretty_print()
+
+                    # Show actual tool invocations
+                    if hasattr(message, "tool_calls") and message.tool_calls:
+                        for tc in message.tool_calls:
+                            print(f"  [TOOL CALL] {tc['name']}({tc['args']})")
         
         print("------------------------------\n")
 

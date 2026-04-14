@@ -1,0 +1,55 @@
+# GPU-enabled Dockerfile for Caco2_Wang ML Notebook
+# Base image: nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
+# Note: Running GPU containers requires NVIDIA Container Toolkit installed on the host.
+
+FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
+
+# Metadata
+LABEL maintainer="data-science-team@example.com"
+
+# Set noninteractive for apt
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Basic utils and Miniconda installation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget ca-certificates bzip2 git build-essential libglib2.0-0 libsm6 libxext6 libxrender1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Miniconda
+ENV CONDA_DIR=/opt/conda
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh \
+    && /bin/bash /tmp/miniconda.sh -b -p $CONDA_DIR \
+    && rm /tmp/miniconda.sh
+ENV PATH=$CONDA_DIR/bin:$PATH
+
+# Create conda environment and install core packages
+# Use conda-forge for RDKit
+COPY environment.yml /tmp/environment.yml
+RUN conda env create -f /tmp/environment.yml && conda clean -afy
+
+# Activate environment by default
+SHELL ["/bin/bash", "-lc"]
+
+# Install PyTorch Geometric wheels compatible with PyTorch 2.1.0 + CUDA 11.7
+# These URLs should match the PyG docs and the installed PyTorch version. Adjust if necessary.
+RUN source activate caco2_env && \
+    pip install --verbose torch-scatter -f https://data.pyg.org/whl/torch-2.1.0+cu117.html && \
+    pip install --verbose torch-sparse -f https://data.pyg.org/whl/torch-2.1.0+cu117.html && \
+    pip install --verbose torch-cluster -f https://data.pyg.org/whl/torch-2.1.0+cu117.html && \
+    pip install --verbose torch-spline-conv -f https://data.pyg.org/whl/torch-2.1.0+cu117.html && \
+    pip install --verbose torch-geometric
+
+# Copy notebook and start Jupyter Lab
+WORKDIR /workspace
+COPY Caco2_Wang_ML_Notebook.ipynb /workspace/Caco2_Wang_ML_Notebook.ipynb
+
+# Create directory for saved models and outputs
+RUN mkdir -p /workspace/saved_models
+
+EXPOSE 8888
+CMD source activate caco2_env && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+
+# Notes:
+# - GPU support requires NVIDIA drivers and nvidia-docker2 / NVIDIA Container Toolkit on host.
+# - If you do not need GPU support, use the provided Dockerfile (non-GPU) or a python:3.9-slim base
+#   and omit CUDA/CuDNN and PyG GPU wheel installation.
